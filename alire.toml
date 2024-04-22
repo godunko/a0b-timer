@@ -17,4 +17,4 @@ disabled = true
 a0b_base = "*"
 a0b_callbacks = "*"
 a0b_time = "*"
-a0b_timer_platform = "*"
+a0b_timer_platform = "0.1.0"
