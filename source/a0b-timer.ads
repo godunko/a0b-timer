@@ -17,23 +17,23 @@ is
      with Preelaborable_Initialization;
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Duration);
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Time_Span);
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Monotonic_Time);
 
-   procedure Cancel (Event : aliased in out Timeout_Control_Block);
+   procedure Cancel (Timeout : aliased in out Timeout_Control_Block);
 
-   function Is_Set (Event : Timeout_Control_Block) return Boolean;
+   function Is_Set (Timeout : Timeout_Control_Block) return Boolean;
 
 private
 
@@ -50,7 +50,7 @@ private
 
    procedure Internal_On_Tick;
 
-   function Is_Set (Event : Timeout_Control_Block) return Boolean is
-     (A0B.Callbacks.Is_Set (Event.Callback));
+   function Is_Set (Timeout : Timeout_Control_Block) return Boolean is
+     (A0B.Callbacks.Is_Set (Timeout.Callback));
 
 end A0B.Timer;

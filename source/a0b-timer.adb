@@ -32,11 +32,12 @@ package body A0B.Timer is
 
    end Platform;
 
-   procedure Internal_Enqueue (Event : not null Timeout_Control_Block_Access);
+   procedure Internal_Enqueue
+     (Timeout : not null Timeout_Control_Block_Access);
 
    procedure Internal_Dequeue
-     (Event : out Timeout_Control_Block_Access;
-      Now   : A0B.Time.Monotonic_Time);
+     (Timeout : out Timeout_Control_Block_Access;
+      Now     : A0B.Time.Monotonic_Time);
 
    Head : aliased Timeout_Control_Block;
    Tail : aliased Timeout_Control_Block;
@@ -46,7 +47,7 @@ package body A0B.Timer is
    -- Cancel --
    ------------
 
-   procedure Cancel (Event : aliased in out Timeout_Control_Block) is
+   procedure Cancel (Timeout : aliased in out Timeout_Control_Block) is
    begin
       Platform.Enter_Critical_Section;
 
@@ -59,18 +60,18 @@ package body A0B.Timer is
          loop
             --  exit when Previous.Next = null;
 
-            exit when Previous.Next = Event'Unchecked_Access;
+            exit when Previous.Next = Timeout'Unchecked_Access;
 
             Previous := Previous.Next;
          end loop;
 
-         Previous.Next := Event.Next;
+         Previous.Next := Timeout.Next;
 
          --  Reset Event state
 
-         Event.Time_Stamp := A0B.Time.Constants.Monotonic_Time_First;
-         A0B.Callbacks.Unset (Event.Callback);
-         Event.Next       := null;
+         Timeout.Time_Stamp := A0B.Time.Constants.Monotonic_Time_First;
+         A0B.Callbacks.Unset (Timeout.Callback);
+         Timeout.Next       := null;
       end;
 
       Platform.Leave_Critical_Section;
@@ -81,16 +82,16 @@ package body A0B.Timer is
    -------------
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Duration) is
    begin
       pragma Assert (A0B.Callbacks.Is_Set (Callback));
 
-      Event.Time_Stamp := A0B.Time.Clock + A0B.Time.To_Time_Span (T);
-      Event.Callback   := Callback;
+      Timeout.Time_Stamp := A0B.Time.Clock + A0B.Time.To_Time_Span (T);
+      Timeout.Callback   := Callback;
 
-      Internal_Enqueue (Event'Unchecked_Access);
+      Internal_Enqueue (Timeout'Unchecked_Access);
    end Enqueue;
 
    -------------
@@ -98,16 +99,16 @@ package body A0B.Timer is
    -------------
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Time_Span) is
    begin
       pragma Assert (A0B.Callbacks.Is_Set (Callback));
 
-      Event.Time_Stamp := A0B.Time.Clock + T;
-      Event.Callback   := Callback;
+      Timeout.Time_Stamp := A0B.Time.Clock + T;
+      Timeout.Callback   := Callback;
 
-      Internal_Enqueue (Event'Unchecked_Access);
+      Internal_Enqueue (Timeout'Unchecked_Access);
    end Enqueue;
 
    -------------
@@ -115,16 +116,16 @@ package body A0B.Timer is
    -------------
 
    procedure Enqueue
-     (Event    : aliased in out Timeout_Control_Block;
+     (Timeout  : aliased in out Timeout_Control_Block;
       Callback : A0B.Callbacks.Callback;
       T        : A0B.Time.Monotonic_Time) is
    begin
       pragma Assert (A0B.Callbacks.Is_Set (Callback));
 
-      Event.Time_Stamp := T;
-      Event.Callback   := Callback;
+      Timeout.Time_Stamp := T;
+      Timeout.Callback   := Callback;
 
-      Internal_Enqueue (Event'Unchecked_Access);
+      Internal_Enqueue (Timeout'Unchecked_Access);
    end Enqueue;
 
    ----------------------
@@ -132,8 +133,8 @@ package body A0B.Timer is
    ----------------------
 
    procedure Internal_Dequeue
-     (Event : out Timeout_Control_Block_Access;
-      Now   : A0B.Time.Monotonic_Time)
+     (Timeout : out Timeout_Control_Block_Access;
+      Now     : A0B.Time.Monotonic_Time)
    is
       First   : constant not null Timeout_Control_Block_Access := Head.Next;
       Success : Boolean;
@@ -142,7 +143,7 @@ package body A0B.Timer is
       --  Check whether queue is empty and return immidiately.
 
       if Head.Next = Tail'Access then
-         Event := null;
+         Timeout := null;
 
          return;
       end if;
@@ -153,7 +154,7 @@ package body A0B.Timer is
       if First.Time_Stamp <= Now then
          Head.Next  := First.Next;
          First.Next := null;
-         Event      := First;
+         Timeout    := First;
 
          return;
       end if;
@@ -163,12 +164,12 @@ package body A0B.Timer is
       Platform.Set_Next (First.Time_Stamp - Now, Success);
 
       if Success then
-         Event := null;
+         Timeout := null;
 
       else
          Head.Next  := First.Next;
          First.Next := null;
-         Event      := First;
+         Timeout    := First;
       end if;
    end Internal_Dequeue;
 
@@ -177,7 +178,7 @@ package body A0B.Timer is
    ----------------------
 
    procedure Internal_Enqueue
-     (Event : not null Timeout_Control_Block_Access) is
+     (Timeout : not null Timeout_Control_Block_Access) is
    begin
       Platform.Enter_Critical_Section;
 
@@ -188,15 +189,15 @@ package body A0B.Timer is
          --  Add to the queue
 
          loop
-            exit when Previous.Next.Time_Stamp > Event.Time_Stamp;
+            exit when Previous.Next.Time_Stamp > Timeout.Time_Stamp;
 
             Previous := Previous.Next;
          end loop;
 
-         Event.Next    := Previous.Next;
-         Previous.Next := Event;
+         Timeout.Next  := Previous.Next;
+         Previous.Next := Timeout;
 
-         if Head.Next = Event then
+         if Head.Next = Timeout then
             Platform.Request_Tick;
          end if;
       end;
