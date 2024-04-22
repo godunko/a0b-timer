@@ -54,10 +54,6 @@ package body A0B.Timer is
          Previous : Timeout_Control_Block_Access := Head'Access;
 
       begin
-         --  Cleanup callback.
-
-         A0B.Callbacks.Unset (Event.Callback);
-
          --  Remove from the queue.
 
          loop
@@ -70,8 +66,10 @@ package body A0B.Timer is
 
          Previous.Next := Event.Next;
 
+         --  Reset Event state
+
          Event.Time_Stamp := A0B.Time.Constants.Monotonic_Time_First;
-         --  A0B.Callbacks.Unset (Event.Callback);
+         A0B.Callbacks.Unset (Event.Callback);
          Event.Next       := null;
       end;
 
