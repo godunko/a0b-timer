@@ -15,9 +15,9 @@ package body A0B.Timer is
 
    package Platform is
 
-      procedure Disable_Interrupts with Inline_Always;
+      procedure Enter_Critical_Section with Inline_Always;
 
-      procedure Enable_Interrupts with Inline_Always;
+      procedure Leave_Critical_Section with Inline_Always;
 
       procedure Request_Tick;
 
@@ -48,7 +48,7 @@ package body A0B.Timer is
 
    procedure Cancel (Event : aliased in out Timeout_Control_Block) is
    begin
-      Platform.Disable_Interrupts;
+      Platform.Enter_Critical_Section;
 
       declare
          Previous : Timeout_Control_Block_Access := Head'Access;
@@ -75,7 +75,7 @@ package body A0B.Timer is
          Event.Next       := null;
       end;
 
-      Platform.Enable_Interrupts;
+      Platform.Leave_Critical_Section;
    end Cancel;
 
    -------------
@@ -181,7 +181,7 @@ package body A0B.Timer is
    procedure Internal_Enqueue
      (Event : not null Timeout_Control_Block_Access) is
    begin
-      Platform.Disable_Interrupts;
+      Platform.Enter_Critical_Section;
 
       declare
          Previous : not null Timeout_Control_Block_Access := Head'Access;
@@ -203,7 +203,7 @@ package body A0B.Timer is
          end if;
       end;
 
-      Platform.Enable_Interrupts;
+      Platform.Leave_Critical_Section;
    end Internal_Enqueue;
 
    -------------------------
