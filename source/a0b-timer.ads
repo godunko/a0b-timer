@@ -37,7 +37,8 @@ is
 
 private
 
-   type Timeout_Control_Block_Access is access all Timeout_Control_Block;
+   type Timeout_Control_Block_Access is access all Timeout_Control_Block
+     with Storage_Size => 0;
 
    type Timeout_Control_Block is limited record
       Time_Stamp : A0B.Time.Monotonic_Time;
