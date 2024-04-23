@@ -49,6 +49,10 @@ package body A0B.Timer is
 
    procedure Cancel (Timeout : aliased in out Timeout_Control_Block) is
    begin
+      if not Is_Set (Timeout) then
+         return;
+      end if;
+
       Platform.Enter_Critical_Section;
 
       declare
