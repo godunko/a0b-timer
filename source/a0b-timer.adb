@@ -49,11 +49,13 @@ package body A0B.Timer is
 
    procedure Cancel (Timeout : aliased in out Timeout_Control_Block) is
    begin
+      Platform.Enter_Critical_Section;
+
       if not Is_Set (Timeout) then
+         Platform.Leave_Critical_Section;
+
          return;
       end if;
-
-      Platform.Enter_Critical_Section;
 
       declare
          Previous : Timeout_Control_Block_Access := Head'Access;
@@ -225,16 +227,27 @@ package body A0B.Timer is
    ----------------------
 
    procedure Internal_On_Tick is
+      Current  : A0B.Time.Monotonic_Time;
       Event    : Timeout_Control_Block_Access;
       Callback : A0B.Callbacks.Callback;
+      Aux      : Timeout_Control_Block with Volatile;
 
    begin
       loop
-         Internal_Dequeue (Event, A0B.Time.Clock);
+         Current := A0B.Time.Clock;
+         --  On ARMv7M internal implementation block interrupts, so do this
+         --  call outside of the critical section, because platform can use
+         --  disable/enable interrupts to implement critical section too.
+
+         Platform.Enter_Critical_Section;
+         Internal_Dequeue (Event, Current);
+         Platform.Leave_Critical_Section;
 
          exit when Event = null;
 
          Callback := Event.Callback;
+         Aux.Time_Stamp := Event.Time_Stamp;
+         Aux.Next       := Event.Next;
 
          A0B.Callbacks.Unset (Event.Callback);
          Event.Time_Stamp := A0B.Time.Constants.Monotonic_Time_First;
