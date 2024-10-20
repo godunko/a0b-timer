@@ -20,6 +20,7 @@ package body A0B.Timer is
       procedure Leave_Critical_Section with Inline_Always;
 
       procedure Request_Tick;
+      --  Requests timer's tick interrupt.
 
       procedure Set_Next
         (Span    : A0B.Time.Time_Span;
